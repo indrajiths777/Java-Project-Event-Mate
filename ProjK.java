@@ -1,6 +1,8 @@
 package projk;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.*;
 
 
@@ -33,6 +35,13 @@ public class ProjK extends JFrame {
 
         JButton clickButton = new JButton("Click Here");
         clickButton.setBounds(175, 180, 100, 30); 
+        
+        clickButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	
+                JOptionPane.showMessageDialog(ProjK.this, "Sorry, there are no events currently available.");
+            }
+        });
 
         
         add(titleLabel);
@@ -45,4 +54,5 @@ public class ProjK extends JFrame {
     
    
 }
+
 
