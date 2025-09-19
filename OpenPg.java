@@ -67,7 +67,6 @@ public class OpenPg {
     });
 	
 	frame.setSize(400,400);
-	panel.add(imageLabel);
 	frame.add(panel);
 	frame.setIconImage(myIcon.getImage());
 	frame.pack();
@@ -76,3 +75,4 @@ public class OpenPg {
 	frame.setVisible(true);
 	}
 }
+
