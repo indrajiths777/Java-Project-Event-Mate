@@ -37,16 +37,21 @@ public class OpenPg {
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton bookButton = new JButton("Book an Event");
-        bookButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        bookButton.setFont(new Font("Arial", Font.BOLD, 16));
-        bookButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        bookButton.setMaximumSize(new Dimension(200, 40));
-
         JButton addButton = new JButton("Add an Event");
-        addButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        addButton.setFont(new Font("Arial", Font.BOLD, 16));
+
+        // Uniform button styling
+        Font buttonFont = new Font("Arial", Font.BOLD, 16);
+        Dimension buttonSize = new Dimension(200, 40);
+
+        bookButton.setFont(buttonFont);
+        bookButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bookButton.setMaximumSize(buttonSize);
+        bookButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        addButton.setFont(buttonFont);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        addButton.setMaximumSize(new Dimension(200, 40));
+        addButton.setMaximumSize(buttonSize);
+        addButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -72,21 +77,21 @@ public class OpenPg {
             }
         });
 
-        frame.setSize(400, 400);
+        frame.setSize(400, 450);
         frame.add(panel);
         frame.setIconImage(myIcon.getImage());
-        frame.pack();
-        frame.setMinimumSize(frame.getSize());
         frame.setLocationRelativeTo(null);
+        frame.setResizable(true);
         frame.setVisible(true);
     }
 
     private static void openLoginWindow() {
         JFrame loginFrame = new JFrame("Admin Login");
         loginFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        loginFrame.setSize(350, 200);
+        loginFrame.setSize(350, 250);
         loginFrame.setLayout(new GridBagLayout());
         loginFrame.setLocationRelativeTo(null);
+        loginFrame.setResizable(true);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -99,6 +104,12 @@ public class OpenPg {
         JPasswordField passField = new JPasswordField(15);
 
         JButton loginButton = new JButton("Login");
+        JButton backButton = new JButton("Back");
+
+        // Uniform button font
+        Font btnFont = new Font("Arial", Font.BOLD, 16);
+        loginButton.setFont(btnFont);
+        backButton.setFont(btnFont);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -121,6 +132,9 @@ public class OpenPg {
         gbc.gridy = 2;
         loginFrame.add(loginButton, gbc);
 
+        gbc.gridy = 3;
+        loginFrame.add(backButton, gbc);
+
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String username = userField.getText().trim();
@@ -136,21 +150,23 @@ public class OpenPg {
             }
         });
 
+        backButton.addActionListener(e -> loginFrame.dispose());
+
         loginFrame.setVisible(true);
     }
 
     private static void openEventForm() {
         JFrame eventFrame = new JFrame("Add New Event");
         eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        eventFrame.setSize(400, 350);
+        eventFrame.setSize(400, 400);
         eventFrame.setLayout(new GridBagLayout());
         eventFrame.setLocationRelativeTo(null);
+        eventFrame.setResizable(true);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        
         JLabel nameLabel = new JLabel("Event Name:");
         JTextField nameField = new JTextField(20);
 
@@ -164,45 +180,84 @@ public class OpenPg {
         JTextField collegeField = new JTextField(20);
 
         JButton submitButton = new JButton("Submit");
+        JButton backButton = new JButton("Back");
 
-       
-        gbc.gridx = 0; gbc.gridy = 0;
+        Font btnFont = new Font("Arial", Font.BOLD, 16);
+        submitButton.setFont(btnFont);
+        backButton.setFont(btnFont);
+
+        JPanel namePanel = createClearableField(nameField);
+        JPanel venuePanel = createClearableField(venueField);
+        JPanel datePanel = createClearableField(dateField);
+        JPanel collegePanel = createClearableField(collegeField);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         eventFrame.add(nameLabel, gbc);
         gbc.gridx = 1;
-        eventFrame.add(nameField, gbc);
+        eventFrame.add(namePanel, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         eventFrame.add(venueLabel, gbc);
         gbc.gridx = 1;
-        eventFrame.add(venueField, gbc);
+        eventFrame.add(venuePanel, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         eventFrame.add(dateLabel, gbc);
         gbc.gridx = 1;
-        eventFrame.add(dateField, gbc);
+        eventFrame.add(datePanel, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         eventFrame.add(collegeLabel, gbc);
         gbc.gridx = 1;
-        eventFrame.add(collegeField, gbc);
+        eventFrame.add(collegePanel, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
         eventFrame.add(submitButton, gbc);
+
+        gbc.gridy = 5;
+        eventFrame.add(backButton, gbc);
 
         submitButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-        
                 String eventName = nameField.getText().trim();
                 String venue = venueField.getText().trim();
                 String date = dateField.getText().trim();
                 String college = collegeField.getText().trim();
 
-                
-                JOptionPane.showMessageDialog(eventFrame, "Event added successfully!");
-                eventFrame.dispose();
+                if (eventName.isEmpty() || venue.isEmpty() || date.isEmpty() || college.isEmpty()) {
+                    JOptionPane.showMessageDialog(eventFrame, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(eventFrame, "Event added successfully!");
+                    eventFrame.dispose();
+                }
             }
         });
 
+        backButton.addActionListener(e -> eventFrame.dispose());
+
         eventFrame.setVisible(true);
+    }
+
+    private static JPanel createClearableField(JTextField textField) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(textField, BorderLayout.CENTER);
+
+        JButton clearButton = new JButton("×");
+        clearButton.setMargin(new Insets(1, 5, 1, 5));
+        clearButton.setFocusable(false);
+        clearButton.setFont(new Font("Arial", Font.BOLD, 12));
+        clearButton.setForeground(Color.RED);
+        clearButton.setToolTipText("Clear");
+
+        clearButton.addActionListener(e -> textField.setText(""));
+
+        panel.add(clearButton, BorderLayout.EAST);
+        return panel;
     }
 }
