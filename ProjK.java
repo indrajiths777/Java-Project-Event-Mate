@@ -82,7 +82,7 @@ public class ProjK extends JFrame {
     }
 
     private void showHackathonImage() {
-        URL imgURL = getClass().getResource("/icon/hackathon.png");
+        URL imgURL = getClass().getResource("/hack/hackathon.png");
         if (imgURL == null) {
             JOptionPane.showMessageDialog(this, "hackathon.png image not found.");
             return;
@@ -184,3 +184,4 @@ public class ProjK extends JFrame {
         });
     }
 }
+
