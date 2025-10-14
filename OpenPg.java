@@ -12,7 +12,7 @@ public class OpenPg {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setBackground(new Color(20, 20, 20));
 
-        URL imgURL = OpenPg.class.getResource("/icon/icon.png");
+        URL imgURL = OpenPg.class.getResource("/icon2/icon2.png");
         ImageIcon myIcon = null;
 
         if (imgURL != null) {
@@ -306,3 +306,4 @@ public class OpenPg {
         return panel;
     }
 }
+
