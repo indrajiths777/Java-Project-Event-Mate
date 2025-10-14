@@ -8,10 +8,9 @@ import java.net.URL;
 
 public class OpenPg {
     public static void main(String[] args) {
-
-        JFrame frame = new JFrame("Image Icon");
+        JFrame frame = new JFrame("Retro Event Manager");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setBackground(Color.WHITE);
+        frame.getContentPane().setBackground(new Color(20, 20, 20));
 
         URL imgURL = OpenPg.class.getResource("/icon/icon.png");
         ImageIcon myIcon = null;
@@ -39,19 +38,29 @@ public class OpenPg {
         JButton bookButton = new JButton("Book an Event");
         JButton addButton = new JButton("Add an Event");
 
-        // Uniform button styling
-        Font buttonFont = new Font("Arial", Font.BOLD, 16);
-        Dimension buttonSize = new Dimension(200, 40);
+        Font retroFont = new Font("Courier New", Font.BOLD, 16);
+        Dimension buttonSize = new Dimension(220, 45);
+        Color neonBlue = new Color(0, 255, 255);
+        Color background = new Color(20, 20, 20);
+        Color borderColor = new Color(0, 255, 180);
 
-        bookButton.setFont(buttonFont);
-        bookButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bookButton.setFont(retroFont);
+        bookButton.setBackground(background);
+        bookButton.setForeground(neonBlue);
+        bookButton.setBorder(BorderFactory.createLineBorder(borderColor, 2));
         bookButton.setMaximumSize(buttonSize);
         bookButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bookButton.setFocusPainted(false);
+        bookButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        addButton.setFont(buttonFont);
-        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addButton.setFont(retroFont);
+        addButton.setBackground(background);
+        addButton.setForeground(neonBlue);
+        addButton.setBorder(BorderFactory.createLineBorder(borderColor, 2));
         addButton.setMaximumSize(buttonSize);
         addButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        addButton.setFocusPainted(false);
+        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -67,6 +76,7 @@ public class OpenPg {
         bookButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 ProjK bookingWindow = new ProjK();
+                bookingWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 bookingWindow.setVisible(true);
             }
         });
@@ -77,7 +87,8 @@ public class OpenPg {
             }
         });
 
-        frame.setSize(400, 450);
+        frame.setSize(420, 480);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.add(panel);
         frame.setIconImage(myIcon.getImage());
         frame.setLocationRelativeTo(null);
@@ -89,9 +100,11 @@ public class OpenPg {
         JFrame loginFrame = new JFrame("Admin Login");
         loginFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         loginFrame.setSize(350, 250);
+        loginFrame.getContentPane().setBackground(new Color(30, 30, 30));
         loginFrame.setLayout(new GridBagLayout());
         loginFrame.setLocationRelativeTo(null);
         loginFrame.setResizable(true);
+        loginFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -106,17 +119,29 @@ public class OpenPg {
         JButton loginButton = new JButton("Login");
         JButton backButton = new JButton("Back");
 
-        // Uniform button font
-        Font btnFont = new Font("Arial", Font.BOLD, 16);
-        loginButton.setFont(btnFont);
-        backButton.setFont(btnFont);
+        Font retroFont = new Font("Courier New", Font.BOLD, 16);
+        Color neonGreen = new Color(0, 255, 100);
+
+        userLabel.setForeground(neonGreen);
+        passLabel.setForeground(neonGreen);
+
+        loginButton.setFont(retroFont);
+        loginButton.setBackground(Color.BLACK);
+        loginButton.setForeground(neonGreen);
+        loginButton.setBorder(BorderFactory.createLineBorder(neonGreen, 2));
+        loginButton.setFocusPainted(false);
+
+        backButton.setFont(retroFont);
+        backButton.setBackground(Color.BLACK);
+        backButton.setForeground(neonGreen);
+        backButton.setBorder(BorderFactory.createLineBorder(neonGreen, 2));
+        backButton.setFocusPainted(false);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         loginFrame.add(userLabel, gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 0;
         loginFrame.add(userField, gbc);
 
         gbc.gridx = 0;
@@ -124,7 +149,6 @@ public class OpenPg {
         loginFrame.add(passLabel, gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 1;
         loginFrame.add(passField, gbc);
 
         gbc.gridwidth = 2;
@@ -158,10 +182,12 @@ public class OpenPg {
     private static void openEventForm() {
         JFrame eventFrame = new JFrame("Add New Event");
         eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        eventFrame.setSize(400, 400);
+        eventFrame.setSize(420, 430);
         eventFrame.setLayout(new GridBagLayout());
+        eventFrame.getContentPane().setBackground(new Color(25, 25, 25));
         eventFrame.setLocationRelativeTo(null);
         eventFrame.setResizable(true);
+        eventFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
@@ -182,9 +208,25 @@ public class OpenPg {
         JButton submitButton = new JButton("Submit");
         JButton backButton = new JButton("Back");
 
-        Font btnFont = new Font("Arial", Font.BOLD, 16);
-        submitButton.setFont(btnFont);
-        backButton.setFont(btnFont);
+        Font retroFont = new Font("Courier New", Font.BOLD, 16);
+        Color neonPink = new Color(255, 105, 180);
+
+        nameLabel.setForeground(neonPink);
+        venueLabel.setForeground(neonPink);
+        dateLabel.setForeground(neonPink);
+        collegeLabel.setForeground(neonPink);
+
+        submitButton.setFont(retroFont);
+        submitButton.setBackground(Color.BLACK);
+        submitButton.setForeground(neonPink);
+        submitButton.setBorder(BorderFactory.createLineBorder(neonPink, 2));
+        submitButton.setFocusPainted(false);
+
+        backButton.setFont(retroFont);
+        backButton.setBackground(Color.BLACK);
+        backButton.setForeground(neonPink);
+        backButton.setBorder(BorderFactory.createLineBorder(neonPink, 2));
+        backButton.setFocusPainted(false);
 
         JPanel namePanel = createClearableField(nameField);
         JPanel venuePanel = createClearableField(venueField);
@@ -246,13 +288,16 @@ public class OpenPg {
 
     private static JPanel createClearableField(JTextField textField) {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(30, 30, 30));
         panel.add(textField, BorderLayout.CENTER);
 
         JButton clearButton = new JButton("×");
         clearButton.setMargin(new Insets(1, 5, 1, 5));
         clearButton.setFocusable(false);
-        clearButton.setFont(new Font("Arial", Font.BOLD, 12));
+        clearButton.setFont(new Font("Courier New", Font.BOLD, 14));
         clearButton.setForeground(Color.RED);
+        clearButton.setBackground(Color.BLACK);
+        clearButton.setBorder(BorderFactory.createLineBorder(Color.RED, 1));
         clearButton.setToolTipText("Clear");
 
         clearButton.addActionListener(e -> textField.setText(""));
