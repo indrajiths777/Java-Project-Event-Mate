@@ -1,8 +1,6 @@
 package projk;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.*;
 import java.net.URL;
 import java.awt.event.*;
@@ -186,4 +184,3 @@ public class ProjK extends JFrame {
         });
     }
 }
-
