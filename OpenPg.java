@@ -3,17 +3,22 @@ package projk;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OpenPg {
-    private static Map<String, String> tempUsers = new HashMap<>();
+    private static JFrame mainFrame;
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("EventMate");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setBackground(new Color(20, 20, 20));
+        SwingUtilities.invokeLater(OpenPg::createMainWindow);
+    }
+
+    private static void createMainWindow() {
+        mainFrame = new JFrame("EventMate");
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.getContentPane().setBackground(new Color(20, 20, 20));
 
         JLabel imageLabel;
         URL imgURL = OpenPg.class.getResource("/icon2/icon2.png");
@@ -22,7 +27,7 @@ public class OpenPg {
             Image scaledImage = originalIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
             ImageIcon myIcon = new ImageIcon(scaledImage);
             imageLabel = new JLabel(myIcon);
-            frame.setIconImage(myIcon.getImage());
+            mainFrame.setIconImage(myIcon.getImage());
         } else {
             imageLabel = new JLabel("EventMate");
             imageLabel.setForeground(new Color(0, 255, 255));
@@ -66,189 +71,124 @@ public class OpenPg {
             bookingWindow.setVisible(true);
         });
 
-        addButton.addActionListener(e -> openLoginWindow());
+        addButton.addActionListener(e -> openLoginSignupForm());
 
-        frame.add(panel);
-        frame.setSize(420, 480);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(true);
-        frame.setVisible(true);
+        mainFrame.add(panel);
+        mainFrame.setSize(420, 480);
+        mainFrame.setLocationRelativeTo(null);
+        mainFrame.setResizable(true);
+        mainFrame.setVisible(true);
     }
 
-    private static void openLoginWindow() {
-        JFrame loginFrame = new JFrame("Admin Login");
-        loginFrame.setUndecorated(true);
+    private static void openLoginSignupForm() {
+        JFrame loginFrame = new JFrame("Login / Sign Up");
         loginFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        loginFrame.setSize(400, 300);
+        loginFrame.setSize(400, 350);
         loginFrame.setLocationRelativeTo(null);
-        loginFrame.setResizable(true);
-        loginFrame.setOpacity(0f);
-        loginFrame.setVisible(true);
-
-        JLabel userLabel = new JLabel("Username:");
-        JTextField userField = new JTextField(15);
-        JLabel passLabel = new JLabel("Password:");
-        JPasswordField passField = new JPasswordField(15);
-
-        JButton loginButton = new JButton("Login");
-        JButton signUpButton = new JButton("Sign Up");
-        JButton backButton = new JButton("Back");
-
-        Color neonGreen = new Color(0, 255, 100);
-        for (JLabel lbl : new JLabel[]{userLabel, passLabel}) lbl.setForeground(neonGreen);
-        for (JButton btn : new JButton[]{loginButton, signUpButton, backButton}) styleRetroButton(btn, neonGreen);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        loginFrame.setResizable(false);
+        loginFrame.getContentPane().setBackground(new Color(25, 25, 25));
         loginFrame.setLayout(new GridBagLayout());
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        loginFrame.add(userLabel, gbc);
-        gbc.gridx = 1;
-        loginFrame.add(userField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1;
-        loginFrame.add(passLabel, gbc);
-        gbc.gridx = 1;
-        loginFrame.add(passField, gbc);
-        gbc.gridwidth = 2; gbc.gridx = 0; gbc.gridy = 2;
-        loginFrame.add(loginButton, gbc);
-        gbc.gridy = 3;
-        loginFrame.add(signUpButton, gbc);
-        gbc.gridy = 4;
-        loginFrame.add(backButton, gbc);
-
-        loginButton.addActionListener(e -> {
-            String username = userField.getText().trim();
-            String password = new String(passField.getPassword()).trim();
-            if ((username.equals("admin") && password.equals("1234")) || 
-                (tempUsers.containsKey(username) && tempUsers.get(username).equals(password))) {
-                fadeOut(loginFrame, () -> SwingUtilities.invokeLater(OpenPg::openEventForm));
-            } else {
-                JOptionPane.showMessageDialog(loginFrame, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        signUpButton.addActionListener(e -> fadeOut(loginFrame, OpenPg::openSignUpWindow));
-        backButton.addActionListener(e -> fadeOut(loginFrame, null));
-
-        fadeIn(loginFrame);
-    }
-
-    private static void openSignUpWindow() {
-        JFrame signUpFrame = new JFrame("Sign Up");
-        signUpFrame.setUndecorated(true);
-        signUpFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        signUpFrame.setSize(400, 300);
-        signUpFrame.setLocationRelativeTo(null);
-        signUpFrame.setResizable(true);
-        signUpFrame.setOpacity(0f);
-        signUpFrame.setVisible(true);
-
-        JLabel userLabel = new JLabel("New Username:");
-        JTextField userField = new JTextField(15);
-        JLabel passLabel = new JLabel("New Password:");
-        JPasswordField passField = new JPasswordField(15);
-
-        JButton createButton = new JButton("Create Account");
-        JButton backButton = new JButton("Back");
-
-        Color neonGreen = new Color(0, 255, 100);
-        for (JLabel lbl : new JLabel[]{userLabel, passLabel}) lbl.setForeground(neonGreen);
-        for (JButton btn : new JButton[]{createButton, backButton}) styleRetroButton(btn, neonGreen);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        signUpFrame.setLayout(new GridBagLayout());
+
+        JLabel usernameLabel = new JLabel("Username:");
+        JTextField usernameField = new JTextField(20);
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+
+        JButton loginButton = new JButton("Login");
+        JButton signupButton = new JButton("Sign Up");
+
+        Color neonPink = new Color(255, 105, 180);
+        usernameLabel.setForeground(neonPink);
+        passwordLabel.setForeground(neonPink);
+        styleRetroButton(loginButton, neonPink);
+        styleRetroButton(signupButton, neonPink);
 
         gbc.gridx = 0; gbc.gridy = 0;
-        signUpFrame.add(userLabel, gbc);
+        loginFrame.add(usernameLabel, gbc);
         gbc.gridx = 1;
-        signUpFrame.add(userField, gbc);
+        loginFrame.add(usernameField, gbc);
+
         gbc.gridx = 0; gbc.gridy = 1;
-        signUpFrame.add(passLabel, gbc);
+        loginFrame.add(passwordLabel, gbc);
         gbc.gridx = 1;
-        signUpFrame.add(passField, gbc);
-        gbc.gridwidth = 2; gbc.gridx = 0; gbc.gridy = 2;
-        signUpFrame.add(createButton, gbc);
+        loginFrame.add(passwordField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        loginFrame.add(loginButton, gbc);
         gbc.gridy = 3;
-        signUpFrame.add(backButton, gbc);
+        loginFrame.add(signupButton, gbc);
 
-        createButton.addActionListener(e -> {
-            String username = userField.getText().trim();
-            String password = new String(passField.getPassword()).trim();
-            if (!username.isEmpty() && !password.isEmpty()) {
-                tempUsers.put(username, password);
-                JOptionPane.showMessageDialog(signUpFrame, "Account created successfully!");
-                fadeOut(signUpFrame, OpenPg::openLoginWindow);
-            } else {
-                JOptionPane.showMessageDialog(signUpFrame, "Please fill all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(loginFrame, "Enter both username and password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        });
 
-        backButton.addActionListener(e -> fadeOut(signUpFrame, OpenPg::openLoginWindow));
-        fadeIn(signUpFrame);
-    }
+            try {
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT * FROM users WHERE username = ? AND password = ?"
+                );
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ResultSet rs = ps.executeQuery();
 
-    private static void styleRetroButton(JButton btn, Color color) {
-        btn.setFont(new Font("Courier New", Font.BOLD, 16));
-        btn.setBackground(Color.BLACK);
-        btn.setForeground(color);
-        btn.setBorder(BorderFactory.createLineBorder(color, 2));
-        btn.setFocusPainted(false);
-    }
-
-    private static void fadeIn(JFrame frame) {
-        Timer timer = new Timer(40, null);
-        timer.addActionListener(new ActionListener() {
-            float opacity = 0f;
-            public void actionPerformed(ActionEvent e) {
-                opacity += 0.05f;
-                frame.setOpacity(Math.min(1f, opacity));
-                if(opacity >= 1f) ((Timer)e.getSource()).stop();
-            }
-        });
-        timer.start();
-    }
-
-    private static void fadeOut(JFrame frame, Runnable nextAction) {
-        Timer timer = new Timer(40, null);
-        timer.addActionListener(new ActionListener() {
-            float opacity = 1f;
-            public void actionPerformed(ActionEvent e) {
-                opacity -= 0.05f;
-                frame.setOpacity(Math.max(0f, opacity));
-                if (opacity <= 0f) {
-                    ((Timer)e.getSource()).stop();
-                    frame.dispose();
-                    if (nextAction != null) nextAction.run();
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(loginFrame, "Login successful!");
+                    loginFrame.dispose();
+                    openEventForm(); // Open Add Event form after login
+                } else {
+                    JOptionPane.showMessageDialog(loginFrame, "Invalid username or password.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+
+                rs.close();
+                ps.close();
+                conn.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(loginFrame, "Database error.");
             }
         });
-        timer.start();
-    }
 
-    private static JPanel createClearableField(JTextField textField) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(30, 30, 30));
-        panel.add(textField, BorderLayout.CENTER);
+        signupButton.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
 
-        JButton clearButton = new JButton("×");
-        clearButton.setMargin(new Insets(1, 5, 1, 5));
-        clearButton.setFocusable(false);
-        clearButton.setFont(new Font("Courier New", Font.BOLD, 14));
-        clearButton.setForeground(Color.RED);
-        clearButton.setBackground(Color.BLACK);
-        clearButton.setBorder(BorderFactory.createLineBorder(Color.RED, 1));
-        clearButton.setToolTipText("Clear");
-        clearButton.addActionListener(e -> textField.setText(""));
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(loginFrame, "Enter both username and password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-        panel.add(clearButton, BorderLayout.EAST);
-        return panel;
+            try {
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO users (username, password) VALUES (?, ?)"
+                );
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ps.executeUpdate();
+                ps.close();
+                conn.close();
+
+                JOptionPane.showMessageDialog(loginFrame, "Sign up successful! You can now login.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(loginFrame, "Failed to sign up. Username may already exist.");
+            }
+        });
+
+        loginFrame.setVisible(true);
     }
 
     private static void openEventForm() {
+        // This is the same Add Event form from before
         JFrame eventFrame = new JFrame("Add New Event");
         eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         eventFrame.setSize(500, 500);
@@ -265,7 +205,7 @@ public class OpenPg {
         JTextField nameField = new JTextField(20);
         JLabel venueLabel = new JLabel("Venue:");
         JTextField venueField = new JTextField(20);
-        JLabel dateLabel = new JLabel("Date:");
+        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD):");
         JTextField dateField = new JTextField(20);
         JLabel collegeLabel = new JLabel("College Name:");
         JTextField collegeField = new JTextField(20);
@@ -308,17 +248,70 @@ public class OpenPg {
         eventFrame.add(backButton, gbc);
 
         submitButton.addActionListener(e -> {
-            if (nameField.getText().trim().isEmpty() || venueField.getText().trim().isEmpty() ||
-                    dateField.getText().trim().isEmpty() || collegeField.getText().trim().isEmpty()) {
+            String eventName = nameField.getText().trim();
+            String venue = venueField.getText().trim();
+            String date = dateField.getText().trim();
+            String college = collegeField.getText().trim();
+
+            if (eventName.isEmpty() || venue.isEmpty() || date.isEmpty() || college.isEmpty()) {
                 JOptionPane.showMessageDialog(eventFrame, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
+                return;
+            }
+
+            try {
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO events (event_name, venue, event_date, college_name) VALUES (?, ?, ?, ?)"
+                );
+                ps.setString(1, eventName);
+                ps.setString(2, venue);
+                ps.setString(3, date);
+                ps.setString(4, college);
+                ps.executeUpdate();
+                ps.close();
+                conn.close();
+
                 JOptionPane.showMessageDialog(eventFrame, "Event added successfully!");
                 eventFrame.dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(eventFrame, "Failed to add event to database.");
             }
         });
 
         backButton.addActionListener(e -> eventFrame.dispose());
         eventFrame.setVisible(true);
     }
-}
 
+    private static JPanel createClearableField(JTextField textField) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(30, 30, 30));
+        textField.setFont(new Font("Courier New", Font.PLAIN, 16));
+        textField.setBackground(Color.BLACK);
+        textField.setForeground(Color.GREEN);
+        textField.setCaretColor(Color.GREEN);
+        panel.add(textField, BorderLayout.CENTER);
+
+        JButton clearButton = new JButton("×");
+        clearButton.setMargin(new Insets(1, 10, 1, 10));
+        clearButton.setFocusable(false);
+        clearButton.setFont(new Font("Courier New", Font.BOLD, 16));
+        clearButton.setForeground(Color.RED);
+        clearButton.setBackground(Color.BLACK);
+        clearButton.setBorder(BorderFactory.createLineBorder(Color.RED, 1));
+        clearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        clearButton.setToolTipText("Clear");
+        clearButton.addActionListener(e -> textField.setText(""));
+
+        panel.add(clearButton, BorderLayout.EAST);
+        return panel;
+    }
+
+    private static void styleRetroButton(JButton btn, Color color) {
+        btn.setFont(new Font("Courier New", Font.BOLD, 16));
+        btn.setBackground(Color.BLACK);
+        btn.setForeground(color);
+        btn.setBorder(BorderFactory.createLineBorder(color, 2));
+        btn.setFocusPainted(false);
+    }
+}
