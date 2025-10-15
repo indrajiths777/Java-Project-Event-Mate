@@ -2,10 +2,12 @@ package projk;
 
 import javax.swing.*;
 import java.awt.*;
-import java.net.URL;
 import java.awt.event.*;
 import java.net.URI;
 import java.awt.Desktop;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class ProjK extends JFrame {
 
@@ -15,49 +17,52 @@ public class ProjK extends JFrame {
     public ProjK() {
         setTitle("Event Mate");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(850, 600);
-        setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(null);
         setResizable(true);
+        getContentPane().setBackground(new Color(20, 20, 20));
 
-        // Title
         JLabel titleLabel = new JLabel("Event Mate", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        titleLabel.setFont(new Font("Courier New", Font.BOLD, 42));
+        titleLabel.setForeground(new Color(0, 255, 180));
         titleLabel.setBounds(0, 20, 850, 50);
 
-        // College label and search box
         JLabel collegeLabel = new JLabel("College Name:");
-        collegeLabel.setFont(new Font("Arial", Font.PLAIN, 22));
+        collegeLabel.setFont(new Font("Courier New", Font.PLAIN, 22));
+        collegeLabel.setForeground(new Color(0, 255, 255));
         collegeLabel.setBounds(100, 100, 180, 30);
 
         collegeSearchBox = new JTextField(20);
         JPanel collegePanel = createClearableField(collegeSearchBox);
         collegePanel.setBounds(320, 100, 350, 35);
 
-        // Event label and search box
         JLabel eventLabel = new JLabel("Event Name:");
-        eventLabel.setFont(new Font("Arial", Font.PLAIN, 22));
+        eventLabel.setFont(new Font("Courier New", Font.PLAIN, 22));
+        eventLabel.setForeground(new Color(0, 255, 255));
         eventLabel.setBounds(100, 160, 180, 30);
 
         eventSearchBox = new JTextField(20);
         JPanel eventPanel = createClearableField(eventSearchBox);
         eventPanel.setBounds(320, 160, 350, 35);
 
-        // Buttons
-        Font buttonFont = new Font("Arial", Font.BOLD, 20);
-        Dimension buttonSize = new Dimension(200, 45);
-
         JButton clickButton = new JButton("Click Here");
-        clickButton.setFont(buttonFont);
+        clickButton.setFont(new Font("Courier New", Font.BOLD, 20));
+        clickButton.setBackground(Color.BLACK);
+        clickButton.setForeground(Color.GREEN);
+        clickButton.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
         clickButton.setBounds(320, 230, 200, 45);
         clickButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        clickButton.setFocusPainted(false);
 
         JButton backButton = new JButton("Back");
-        backButton.setFont(buttonFont);
+        backButton.setFont(new Font("Courier New", Font.BOLD, 20));
+        backButton.setBackground(Color.BLACK);
+        backButton.setForeground(Color.RED);
+        backButton.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
         backButton.setBounds(20, 20, 120, 40);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.setFocusPainted(false);
         backButton.addActionListener(e -> dispose());
-
-        getContentPane().setBackground(new Color(220, 240, 220));
 
         add(titleLabel);
         add(collegeLabel);
@@ -67,110 +72,132 @@ public class ProjK extends JFrame {
         add(clickButton);
         add(backButton);
 
-        clickButton.addActionListener(e -> onClick());
+        clickButton.addActionListener(e -> searchEvent());
     }
 
-    private void onClick() {
+    private void searchEvent() {
         String collegeName = collegeSearchBox.getText().trim();
         String eventName = eventSearchBox.getText().trim();
 
-        if (collegeName.equalsIgnoreCase("cep") && eventName.equalsIgnoreCase("hackathon")) {
-            showHackathonImage();
-        } else {
-            JOptionPane.showMessageDialog(this, "Sorry!!\nNo such events are currently available on this college.");
-        }
-    }
-
-    private void showHackathonImage() {
-        URL imgURL = getClass().getResource("/hack/hackathon.png");
-        if (imgURL == null) {
-            JOptionPane.showMessageDialog(this, "hackathon.png image not found.");
+        if (collegeName.isEmpty() || eventName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter both college and event name.");
             return;
         }
 
-        ImageIcon originalIcon = new ImageIcon(imgURL);
-        Image scaledImage = originalIcon.getImage().getScaledInstance(600, 400, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM events WHERE college_name = ? AND event_name = ?"
+            );
+            ps.setString(1, collegeName);
+            ps.setString(2, eventName);
+            ResultSet rs = ps.executeQuery();
 
-        JFrame imageFrame = new JFrame("Hackathon Event");
-        imageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        imageFrame.setSize(700, 750);
-        imageFrame.setLocationRelativeTo(this);
-        imageFrame.setResizable(true);
+            if (rs.next()) {
+                String event = rs.getString("event_name");
+                String venue = rs.getString("venue");
+                java.sql.Date date = rs.getDate("event_date");
 
-        JLabel imageLabel = new JLabel(scaledIcon);
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                showEventDetails(event, collegeName, venue, date.toString());
+            } else {
+                JOptionPane.showMessageDialog(this, "Sorry!!\nNo such events are currently available for this college.");
+            }
+
+            rs.close();
+            ps.close();
+            conn.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error fetching event from database.");
+        }
+    }
+
+    private void showEventDetails(String event, String college, String venue, String date) {
+        JFrame eventFrame = new JFrame(event + " Event");
+        eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        eventFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        eventFrame.setLocationRelativeTo(this);
+        eventFrame.setResizable(true);
+        eventFrame.getContentPane().setBackground(new Color(20, 20, 20));
 
         JTextArea detailsArea = new JTextArea(
-            "Event: Hackathon\n" +
-            "College: CEP\n" +
-            "Date: 2025-10-15\n" +
-            "Venue: Main Auditorium\n\n" +
-            "Join us for an exciting 24-hour coding competition!\n" +
-            "Prizes for top teams and networking opportunities."
+                "Event: " + event + "\n" +
+                        "College: " + college + "\n" +
+                        "Date: " + date + "\n" +
+                        "Venue: " + venue + "\n\n" +
+                        "Join us for this amazing event!"
         );
         detailsArea.setEditable(false);
         detailsArea.setLineWrap(true);
         detailsArea.setWrapStyleWord(true);
-        detailsArea.setFont(new Font("Arial", Font.PLAIN, 18));
-        detailsArea.setBorder(BorderFactory.createTitledBorder("Event Details"));
-        detailsArea.setBackground(imageFrame.getBackground());
+        detailsArea.setFont(new Font("Courier New", Font.PLAIN, 18));
+        detailsArea.setForeground(new Color(255, 105, 180));
+        detailsArea.setBackground(new Color(30, 30, 30));
+        detailsArea.setAlignmentX(Component.CENTER_ALIGNMENT);
+        detailsArea.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.PINK), "Event Details"));
 
-        JButton registerButton = new JButton("<HTML><U>Register for Hackathon</U></HTML>");
-        registerButton.setFont(new Font("Arial", Font.BOLD, 22));
-        registerButton.setForeground(Color.BLUE);
-        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton registerButton = new JButton("<HTML><U>Register</U></HTML>");
+        registerButton.setFont(new Font("Courier New", Font.BOLD, 22));
+        registerButton.setForeground(Color.CYAN);
+        registerButton.setBackground(Color.BLACK);
         registerButton.setBorderPainted(false);
         registerButton.setContentAreaFilled(false);
-
+        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(imageFrame, "Registration link clicked! Redirecting...");
+            JOptionPane.showMessageDialog(eventFrame, "Registration link clicked! Redirecting...");
             try {
                 Desktop.getDesktop().browse(new URI("https://www.google.com"));
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(imageFrame, "Failed to open registration link.");
+                JOptionPane.showMessageDialog(eventFrame, "Failed to open registration link.");
             }
         });
 
         JButton backButton = new JButton("Back");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        backButton.addActionListener(e -> imageFrame.dispose());
+        backButton.setFont(new Font("Courier New", Font.BOLD, 20));
+        backButton.setForeground(Color.RED);
+        backButton.setBackground(Color.BLACK);
+        backButton.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.setFocusPainted(false);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.addActionListener(e -> eventFrame.dispose());
 
-        // Use BoxLayout for vertical alignment
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setBackground(new Color(20, 20, 20));
 
-        panel.add(imageLabel);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(detailsArea);
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(registerButton);
         panel.add(Box.createRigidArea(new Dimension(0, 30)));
         panel.add(backButton);
 
-        // Align center
-        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        detailsArea.setAlignmentX(Component.CENTER_ALIGNMENT);
-        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        imageFrame.add(panel);
-        imageFrame.setVisible(true);
+        eventFrame.add(panel);
+        eventFrame.setVisible(true);
     }
 
     private JPanel createClearableField(JTextField textField) {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(30, 30, 30));
+        textField.setFont(new Font("Courier New", Font.PLAIN, 16));
+        textField.setBackground(Color.BLACK);
+        textField.setForeground(Color.GREEN);
+        textField.setCaretColor(Color.GREEN);
         panel.add(textField, BorderLayout.CENTER);
 
         JButton clearButton = new JButton("×");
         clearButton.setMargin(new Insets(1, 10, 1, 10));
         clearButton.setFocusable(false);
-        clearButton.setFont(new Font("Arial", Font.BOLD, 16));
+        clearButton.setFont(new Font("Courier New", Font.BOLD, 16));
         clearButton.setForeground(Color.RED);
+        clearButton.setBackground(Color.BLACK);
+        clearButton.setBorder(BorderFactory.createLineBorder(Color.RED, 1));
+        clearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         clearButton.setToolTipText("Clear");
-
         clearButton.addActionListener(e -> textField.setText(""));
 
         panel.add(clearButton, BorderLayout.EAST);
@@ -184,3 +211,4 @@ public class ProjK extends JFrame {
         });
     }
 }
+
