@@ -17,7 +17,6 @@ public class OpenPg {
         SwingUtilities.invokeLater(OpenPg::createMainWindow);
     }
 
-    
     private static void createMainWindow() {
         mainFrame = new JFrame("EventMate");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -31,7 +30,7 @@ public class OpenPg {
         splitPane.setDividerSize(0);
         splitPane.setEnabled(false);
 
-        
+        // Left panel
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setBackground(new Color(25, 25, 30));
@@ -58,7 +57,7 @@ public class OpenPg {
         leftPanel.add(subtitle);
         leftPanel.add(Box.createVerticalGlue());
 
-       
+        // Right panel
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new GridBagLayout());
         rightPanel.setBackground(new Color(40, 40, 50));
@@ -85,23 +84,23 @@ public class OpenPg {
         footer.setForeground(new Color(150, 150, 150));
         rightPanel.add(footer, gbc);
 
-        
         splitPane.setLeftComponent(leftPanel);
         splitPane.setRightComponent(rightPanel);
         mainFrame.add(splitPane);
         mainFrame.setVisible(true);
 
-        
+        // ACTIONS
         bookButton.addActionListener(e -> {
+            // Open ProjK.java window
             ProjK bookingWindow = new ProjK();
             bookingWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
             bookingWindow.setVisible(true);
         });
+
         addButton.addActionListener(e -> openLoginSignupForm(false));
         editButton.addActionListener(e -> openLoginSignupForm(true));
     }
 
-    
     private static JButton createStyledButton(String text, Color accent, FontAwesomeSolid icon) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 22));
@@ -113,38 +112,28 @@ public class OpenPg {
         btn.setBorder(BorderFactory.createLineBorder(accent.darker(), 2));
         btn.setOpaque(true);
 
-        
         btn.setIcon(FontIcon.of(icon, 24, Color.WHITE));
-        btn.setIconTextGap(15); 
+        btn.setIconTextGap(15);
 
         btn.addMouseListener(new MouseAdapter() {
-            
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(accent.brighter());
                 btn.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
             }
-
-            
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(accent);
                 btn.setBorder(BorderFactory.createLineBorder(accent.darker(), 2));
             }
-
-            
             public void mousePressed(MouseEvent e) {
                 btn.setBackground(accent.darker());
             }
-
-            
             public void mouseReleased(MouseEvent e) {
                 btn.setBackground(accent.brighter());
             }
         });
-
         return btn;
     }
 
-    
     private static void openLoginSignupForm(boolean isEditMode) {
         JFrame frame = new JFrame("Login / Sign Up");
         frame.setSize(420,340);
@@ -187,7 +176,8 @@ public class OpenPg {
         String username = u.getText().trim();
         String password = new String(p.getPassword());
         if(username.isEmpty()||password.isEmpty()) {
-            JOptionPane.showMessageDialog(frame,"Enter both fields","Error",JOptionPane.ERROR_MESSAGE); return;
+            JOptionPane.showMessageDialog(frame,"Enter both fields","Error",JOptionPane.ERROR_MESSAGE);
+            return;
         }
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE username=? AND password=?")) {
@@ -197,23 +187,31 @@ public class OpenPg {
                 JOptionPane.showMessageDialog(frame,"Login successful!");
                 frame.dispose();
                 if(editMode) openEventEditor(); else openEventForm();
-            } else { JOptionPane.showMessageDialog(frame,"Invalid credentials","Error",JOptionPane.ERROR_MESSAGE); }
+            } else {
+                JOptionPane.showMessageDialog(frame,"Invalid credentials","Error",JOptionPane.ERROR_MESSAGE);
+            }
         } catch(Exception ex){ ex.printStackTrace(); JOptionPane.showMessageDialog(frame,"Database error"); }
     }
 
     private static void handleSignup(JTextField u, JPasswordField p, JFrame frame) {
         String username = u.getText().trim();
         String password = new String(p.getPassword());
-        if(username.isEmpty()||password.isEmpty()){ JOptionPane.showMessageDialog(frame,"Enter both fields","Error",JOptionPane.ERROR_MESSAGE); return; }
+        if(username.isEmpty()||password.isEmpty()){
+            JOptionPane.showMessageDialog(frame,"Enter both fields","Error",JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement("INSERT INTO users(username,password) VALUES(?,?)")) {
-            ps.setString(1,username); ps.setString(2,password);
+            ps.setString(1,username);
+            ps.setString(2,password);
             ps.executeUpdate();
             JOptionPane.showMessageDialog(frame,"Sign up successful! You can now login.");
-        } catch(Exception ex){ ex.printStackTrace(); JOptionPane.showMessageDialog(frame,"Sign up failed (username may exist)"); }
+        } catch(Exception ex){
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(frame,"Sign up failed (username may exist)");
+        }
     }
 
-    
     private static void openEventForm() {
         JFrame frame = new JFrame("Add Event");
         frame.setSize(520,500);
@@ -261,7 +259,6 @@ public class OpenPg {
         backBtn.addActionListener(e->frame.dispose());
     }
 
-    
     private static void openEventEditor() {
         JFrame frame = new JFrame("Edit/Delete Events");
         frame.setSize(750,450);
@@ -276,11 +273,10 @@ public class OpenPg {
 
         JButton editBtn = createStyledButton("Edit Selected", new Color(0,200,150), FontAwesomeSolid.EDIT);
         JButton deleteBtn = createStyledButton("Delete Selected", new Color(255,90,90), FontAwesomeSolid.TRASH);
-        JButton refreshBtn = createStyledButton("Refresh", new Color(0,150,255), FontAwesomeSolid.ROTATE);
 
         JPanel btnPanel = new JPanel();
         btnPanel.setBackground(new Color(30,30,40));
-        btnPanel.add(editBtn); btnPanel.add(deleteBtn); btnPanel.add(refreshBtn);
+        btnPanel.add(editBtn); btnPanel.add(deleteBtn);
 
         frame.add(new JScrollPane(eventList), BorderLayout.CENTER);
         frame.add(btnPanel, BorderLayout.SOUTH);
@@ -343,7 +339,7 @@ public class OpenPg {
             }
         });
 
-        refreshBtn.addActionListener(e->loadEvents.run());
         frame.setVisible(true);
     }
 }
+
