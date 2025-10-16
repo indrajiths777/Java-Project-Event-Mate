@@ -1,0 +1,285 @@
+package projk;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.URL;
+
+public class OpenPg {
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Event Manager");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setBackground(Color.WHITE);
+
+        URL imgURL = OpenPg.class.getResource("/icon/icon.png");
+        ImageIcon myIcon = null;
+
+        if (imgURL != null) {
+            ImageIcon originalIcon = new ImageIcon(imgURL);
+            int desiredWidth = 180;
+            int desiredHeight = 180;
+            Image originalImage = originalIcon.getImage();
+            Image scaledImage = originalImage.getScaledInstance(desiredWidth, desiredHeight, Image.SCALE_SMOOTH);
+            myIcon = new ImageIcon(scaledImage);
+        } else {
+            System.err.println("Couldn't find file: /icon/icon.png");
+            frame.add(new JLabel("Image not found at /icon/icon.png"));
+            frame.setSize(300, 100);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+            return;
+        }
+
+        JLabel imageLabel = new JLabel(myIcon);
+        imageLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+        JButton bookButton = new JButton("Book an Event");
+        JButton addButton = new JButton("Add an Event");
+
+        Font officeFont = new Font("Segoe UI", Font.PLAIN, 16);
+        Dimension buttonSize = new Dimension(220, 45);
+        Color officeBlue = new Color(0, 120, 215);
+
+        bookButton.setFont(officeFont);
+        bookButton.setBackground(Color.WHITE);
+        bookButton.setForeground(Color.BLACK);
+        bookButton.setBorder(BorderFactory.createLineBorder(officeBlue, 1));
+        bookButton.setMaximumSize(buttonSize);
+        bookButton.setFocusPainted(false);
+        bookButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        addButton.setFont(officeFont);
+        addButton.setBackground(Color.WHITE);
+        addButton.setForeground(Color.BLACK);
+        addButton.setBorder(BorderFactory.createLineBorder(officeBlue, 1));
+        addButton.setMaximumSize(buttonSize);
+        addButton.setFocusPainted(false);
+        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+        optionsPanel.setBackground(Color.WHITE);
+        optionsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        optionsPanel.add(bookButton);
+        optionsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        optionsPanel.add(addButton);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        mainPanel.add(imageLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(40, 0)));
+        mainPanel.add(optionsPanel);
+
+        bookButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ProjK bookingWindow = new ProjK();
+                bookingWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                bookingWindow.setVisible(true);
+            }
+        });
+
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openLoginWindow();
+            }
+        });
+
+        frame.setSize(420, 480);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.add(mainPanel);
+        frame.setIconImage(myIcon.getImage());
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(true);
+        frame.setVisible(true);
+    }
+
+    private static void openLoginWindow() {
+        JFrame loginFrame = new JFrame("Admin Login");
+        loginFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        loginFrame.setSize(350, 250);
+        loginFrame.getContentPane().setBackground(Color.WHITE);
+        loginFrame.setLayout(new GridBagLayout());
+        loginFrame.setLocationRelativeTo(null);
+        loginFrame.setResizable(true);
+        loginFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel userLabel = new JLabel("Username:");
+        JTextField userField = new JTextField(15);
+
+        JLabel passLabel = new JLabel("Password:");
+        JPasswordField passField = new JPasswordField(15);
+
+        JButton loginButton = new JButton("Login");
+        JButton backButton = new JButton("Back");
+
+        Font officeFont = new Font("Segoe UI", Font.PLAIN, 16);
+        Color officeBlue = new Color(0, 120, 215);
+
+        userLabel.setForeground(Color.BLACK);
+        passLabel.setForeground(Color.BLACK);
+
+        loginButton.setFont(officeFont);
+        loginButton.setBackground(officeBlue);
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFocusPainted(false);
+
+        backButton.setFont(officeFont);
+        backButton.setBackground(Color.LIGHT_GRAY);
+        backButton.setForeground(Color.BLACK);
+        backButton.setFocusPainted(false);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        loginFrame.add(userLabel, gbc);
+        gbc.gridx = 1;
+        loginFrame.add(userField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        loginFrame.add(passLabel, gbc);
+        gbc.gridx = 1;
+        loginFrame.add(passField, gbc);
+        gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        loginFrame.add(loginButton, gbc);
+        gbc.gridy = 3;
+        loginFrame.add(backButton, gbc);
+
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = userField.getText().trim();
+                String password = new String(passField.getPassword()).trim();
+
+                if (username.equals("admin") && password.equals("1234")) {
+                    JOptionPane.showMessageDialog(loginFrame, "Login successful!");
+                    loginFrame.dispose();
+                    openEventForm();
+                } else {
+                    JOptionPane.showMessageDialog(loginFrame, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        backButton.addActionListener(e -> loginFrame.dispose());
+        loginFrame.setVisible(true);
+    }
+
+    private static void openEventForm() {
+        JFrame eventFrame = new JFrame("Add New Event");
+        eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        eventFrame.setSize(420, 430);
+        eventFrame.setLayout(new GridBagLayout());
+        eventFrame.getContentPane().setBackground(Color.WHITE);
+        eventFrame.setLocationRelativeTo(null);
+        eventFrame.setResizable(true);
+        eventFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel nameLabel = new JLabel("Event Name:");
+        JTextField nameField = new JTextField(20);
+        JLabel venueLabel = new JLabel("Venue:");
+        JTextField venueField = new JTextField(20);
+        JLabel dateLabel = new JLabel("Date:");
+        JTextField dateField = new JTextField(20);
+        JLabel collegeLabel = new JLabel("College Name:");
+        JTextField collegeField = new JTextField(20);
+        JButton submitButton = new JButton("Submit");
+        JButton backButton = new JButton("Back");
+
+        Font officeFont = new Font("Segoe UI", Font.PLAIN, 16);
+        Color officeBlue = new Color(0, 120, 215);
+
+        nameLabel.setForeground(Color.BLACK);
+        venueLabel.setForeground(Color.BLACK);
+        dateLabel.setForeground(Color.BLACK);
+        collegeLabel.setForeground(Color.BLACK);
+
+        submitButton.setFont(officeFont);
+        submitButton.setBackground(officeBlue);
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFocusPainted(false);
+
+        backButton.setFont(officeFont);
+        backButton.setBackground(Color.LIGHT_GRAY);
+        backButton.setForeground(Color.BLACK);
+        backButton.setFocusPainted(false);
+
+        JPanel namePanel = createClearableField(nameField);
+        JPanel venuePanel = createClearableField(venueField);
+        JPanel datePanel = createClearableField(dateField);
+        JPanel collegePanel = createClearableField(collegeField);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        eventFrame.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        eventFrame.add(namePanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        eventFrame.add(venueLabel, gbc);
+        gbc.gridx = 1;
+        eventFrame.add(venuePanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        eventFrame.add(dateLabel, gbc);
+        gbc.gridx = 1;
+        eventFrame.add(datePanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        eventFrame.add(collegeLabel, gbc);
+        gbc.gridx = 1;
+        eventFrame.add(collegePanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        eventFrame.add(submitButton, gbc);
+        gbc.gridy = 5;
+        eventFrame.add(backButton, gbc);
+
+        submitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String eventName = nameField.getText().trim();
+                String venue = venueField.getText().trim();
+                String date = dateField.getText().trim();
+                String college = collegeField.getText().trim();
+
+                if (eventName.isEmpty() || venue.isEmpty() || date.isEmpty() || college.isEmpty()) {
+                    JOptionPane.showMessageDialog(eventFrame, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(eventFrame, "Event added successfully!");
+                    eventFrame.dispose();
+                }
+            }
+        });
+
+        backButton.addActionListener(e -> eventFrame.dispose());
+        eventFrame.setVisible(true);
+    }
+
+    private static JPanel createClearableField(JTextField textField) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.add(textField, BorderLayout.CENTER);
+        JButton clearButton = new JButton("×");
+        clearButton.setMargin(new Insets(1, 5, 1, 5));
+        clearButton.setFocusable(false);
+        clearButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        clearButton.setForeground(Color.RED);
+        clearButton.setBackground(Color.WHITE);
+        clearButton.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+        clearButton.setToolTipText("Clear");
+        clearButton.addActionListener(e -> textField.setText(""));
+        panel.add(clearButton, BorderLayout.EAST);
+        return panel;
+    }
+}
