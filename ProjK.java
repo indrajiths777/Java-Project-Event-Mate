@@ -1,214 +1,249 @@
 package projk;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.URI;
 import java.awt.Desktop;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.util.ArrayList;
 
 public class ProjK extends JFrame {
 
-    private JTextField collegeSearchBox;
-    private JTextField eventSearchBox;
+    private JComboBox<String> collegeSearchBox;
+    private JComboBox<String> eventSearchBox;
+    private ArrayList<String> collegeList;
+    private ArrayList<String> eventList;
 
     public ProjK() {
-        setTitle("Event Mate");
+        setTitle("EventMate - Book Event");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLayout(null);
-        setResizable(true);
-        getContentPane().setBackground(new Color(20, 20, 20));
 
-        JLabel titleLabel = new JLabel("Event Mate", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Courier New", Font.BOLD, 42));
-        titleLabel.setForeground(new Color(0, 255, 180));
-        titleLabel.setBounds(0, 20, 850, 50);
+        // Split pane
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setDividerLocation(400);
+        splitPane.setDividerSize(0);
+        splitPane.setEnabled(false);
+
+        // Left panel (icon + title)
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBackground(new Color(25, 25, 30));
+        leftPanel.setBorder(new EmptyBorder(40, 20, 40, 20));
+
+        JLabel iconLabel = new JLabel("\uD83C\uDFE2"); // simple event icon
+        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 120));
+        iconLabel.setForeground(new Color(0, 200, 255));
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel titleLabel = new JLabel("EventMate");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        titleLabel.setForeground(new Color(0, 200, 255));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subtitleLabel = new JLabel("<html><center>Book Your College Events</center></html>");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        subtitleLabel.setForeground(new Color(200, 200, 200));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subtitleLabel.setBorder(new EmptyBorder(20,0,40,0));
+
+        leftPanel.add(Box.createVerticalGlue());
+        leftPanel.add(iconLabel);
+        leftPanel.add(Box.createVerticalStrut(20));
+        leftPanel.add(titleLabel);
+        leftPanel.add(subtitleLabel);
+        leftPanel.add(Box.createVerticalGlue());
+
+        // Right panel (search + buttons)
+        JPanel rightPanel = new JPanel(new GridBagLayout());
+        rightPanel.setBackground(new Color(40, 40, 50));
+        rightPanel.setBorder(new EmptyBorder(20,20,20,20));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15,15,15,15);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Load data
+        loadCollegesFromDB();
+        loadEventsFromDB();
 
         JLabel collegeLabel = new JLabel("College Name:");
-        collegeLabel.setFont(new Font("Courier New", Font.PLAIN, 22));
-        collegeLabel.setForeground(new Color(0, 255, 255));
-        collegeLabel.setBounds(100, 100, 180, 30);
+        collegeLabel.setForeground(Color.WHITE);
+        collegeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        gbc.gridx = 0; gbc.gridy = 0;
+        rightPanel.add(collegeLabel, gbc);
 
-        collegeSearchBox = new JTextField(20);
-        JPanel collegePanel = createClearableField(collegeSearchBox);
-        collegePanel.setBounds(320, 100, 350, 35);
+        collegeSearchBox = new JComboBox<>(collegeList.toArray(new String[0]));
+        collegeSearchBox.setEditable(true);
+        collegeSearchBox.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        collegeSearchBox.setBackground(Color.BLACK);
+        collegeSearchBox.setForeground(Color.GREEN);
+        gbc.gridx = 1; gbc.gridy = 0;
+        rightPanel.add(collegeSearchBox, gbc);
 
-        JLabel eventLabel = new JLabel("Event Name:");
-        eventLabel.setFont(new Font("Courier New", Font.PLAIN, 22));
-        eventLabel.setForeground(new Color(0, 255, 255));
-        eventLabel.setBounds(100, 160, 180, 30);
-
-        eventSearchBox = new JTextField(20);
-        JPanel eventPanel = createClearableField(eventSearchBox);
-        eventPanel.setBounds(320, 160, 350, 35);
-
-        JButton clickButton = new JButton("Click Here");
-        clickButton.setFont(new Font("Courier New", Font.BOLD, 20));
-        clickButton.setBackground(Color.BLACK);
-        clickButton.setForeground(Color.GREEN);
-        clickButton.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
-        clickButton.setBounds(320, 230, 200, 45);
-        clickButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        clickButton.setFocusPainted(false);
-
-        JButton backButton = new JButton("Back");
-        backButton.setFont(new Font("Courier New", Font.BOLD, 20));
-        backButton.setBackground(Color.BLACK);
-        backButton.setForeground(Color.RED);
-        backButton.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
-        backButton.setBounds(20, 20, 120, 40);
-        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        backButton.setFocusPainted(false);
-        backButton.addActionListener(e -> dispose());
-
-        add(titleLabel);
-        add(collegeLabel);
-        add(collegePanel);
-        add(eventLabel);
-        add(eventPanel);
-        add(clickButton);
-        add(backButton);
-
-        clickButton.addActionListener(e -> searchEvent());
-    }
-
-    private void searchEvent() {
-        String collegeName = collegeSearchBox.getText().trim();
-        String eventName = eventSearchBox.getText().trim();
-
-        if (collegeName.isEmpty() || eventName.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter both college and event name.");
-            return;
-        }
-
-        try {
-            Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(
-                    "SELECT * FROM events WHERE college_name = ? AND event_name = ?"
-            );
-            ps.setString(1, collegeName);
-            ps.setString(2, eventName);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String event = rs.getString("event_name");
-                String venue = rs.getString("venue");
-                java.sql.Date date = rs.getDate("event_date");
-
-                showEventDetails(event, collegeName, venue, date.toString());
-            } else {
-                JOptionPane.showMessageDialog(this, "Sorry!!\nNo such events are currently available for this college.");
-            }
-
-            rs.close();
-            ps.close();
-            conn.close();
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error fetching event from database.");
-        }
-    }
-
-    private void showEventDetails(String event, String college, String venue, String date) {
-        JFrame eventFrame = new JFrame(event + " Event");
-        eventFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        eventFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        eventFrame.setLocationRelativeTo(this);
-        eventFrame.setResizable(true);
-        eventFrame.getContentPane().setBackground(new Color(20, 20, 20));
-
-        JTextArea detailsArea = new JTextArea(
-                "Event: " + event + "\n" +
-                        "College: " + college + "\n" +
-                        "Date: " + date + "\n" +
-                        "Venue: " + venue + "\n\n" +
-                        "Join us for this amazing event!"
-        );
-        detailsArea.setEditable(false);
-        detailsArea.setLineWrap(true);
-        detailsArea.setWrapStyleWord(true);
-        detailsArea.setFont(new Font("Courier New", Font.PLAIN, 18));
-        detailsArea.setForeground(new Color(255, 105, 180));
-        detailsArea.setBackground(new Color(30, 30, 30));
-        detailsArea.setAlignmentX(Component.CENTER_ALIGNMENT);
-        detailsArea.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.PINK), "Event Details"));
-
-        JButton registerButton = new JButton("<HTML><U>Register</U></HTML>");
-        registerButton.setFont(new Font("Courier New", Font.BOLD, 22));
-        registerButton.setForeground(Color.CYAN);
-        registerButton.setBackground(Color.BLACK);
-        registerButton.setBorderPainted(false);
-        registerButton.setContentAreaFilled(false);
-        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        registerButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(eventFrame, "Registration link clicked! Redirecting...");
-            try {
-                Desktop.getDesktop().browse(new URI("https://www.google.com"));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(eventFrame, "Failed to open registration link.");
+        JTextField collegeEditor = (JTextField) collegeSearchBox.getEditor().getEditorComponent();
+        collegeEditor.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                String text = collegeEditor.getText().toLowerCase();
+                collegeSearchBox.removeAllItems();
+                for (String college : collegeList) {
+                    if (college.toLowerCase().contains(text)) {
+                        collegeSearchBox.addItem(college);
+                    }
+                }
+                collegeEditor.setText(text);
+                collegeSearchBox.showPopup();
             }
         });
 
-        JButton backButton = new JButton("Back");
-        backButton.setFont(new Font("Courier New", Font.BOLD, 20));
-        backButton.setForeground(Color.RED);
-        backButton.setBackground(Color.BLACK);
-        backButton.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
-        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        backButton.setFocusPainted(false);
-        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backButton.addActionListener(e -> eventFrame.dispose());
+        JLabel eventLabel = new JLabel("Event Name:");
+        eventLabel.setForeground(Color.WHITE);
+        eventLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        gbc.gridx = 0; gbc.gridy = 1;
+        rightPanel.add(eventLabel, gbc);
+
+        eventSearchBox = new JComboBox<>(eventList.toArray(new String[0]));
+        eventSearchBox.setEditable(true);
+        eventSearchBox.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        eventSearchBox.setBackground(Color.BLACK);
+        eventSearchBox.setForeground(Color.GREEN);
+        gbc.gridx = 1; gbc.gridy = 1;
+        rightPanel.add(eventSearchBox, gbc);
+
+        JTextField eventEditor = (JTextField) eventSearchBox.getEditor().getEditorComponent();
+        eventEditor.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                String text = eventEditor.getText().toLowerCase();
+                eventSearchBox.removeAllItems();
+                for (String event : eventList) {
+                    if (event.toLowerCase().contains(text)) {
+                        eventSearchBox.addItem(event);
+                    }
+                }
+                eventEditor.setText(text);
+                eventSearchBox.showPopup();
+            }
+        });
+
+        // Buttons
+        JButton searchBtn = createStyledButton("Search Event", new Color(0,200,255));
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        rightPanel.add(searchBtn, gbc);
+
+        JButton backBtn = createStyledButton("Back", new Color(255,90,90));
+        gbc.gridy = 3;
+        rightPanel.add(backBtn, gbc);
+
+        // Actions
+        searchBtn.addActionListener(e -> searchEvent());
+        backBtn.addActionListener(e -> dispose());
+
+        splitPane.setLeftComponent(leftPanel);
+        splitPane.setRightComponent(rightPanel);
+        add(splitPane);
+    }
+
+    private JButton createStyledButton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(color);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createLineBorder(color.darker(), 2));
+        btn.setOpaque(true);
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e){ btn.setBackground(color.brighter()); }
+            public void mouseExited(MouseEvent e){ btn.setBackground(color); }
+        });
+        return btn;
+    }
+
+    private void loadCollegesFromDB() {
+        collegeList = new ArrayList<>();
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement("SELECT DISTINCT college_name FROM events");
+            ResultSet rs = pst.executeQuery()) {
+            while(rs.next()) collegeList.add(rs.getString("college_name"));
+        } catch(Exception e){ e.printStackTrace(); }
+    }
+
+    private void loadEventsFromDB() {
+        eventList = new ArrayList<>();
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement("SELECT DISTINCT event_name FROM events");
+            ResultSet rs = pst.executeQuery()) {
+            while(rs.next()) eventList.add(rs.getString("event_name"));
+        } catch(Exception e){ e.printStackTrace(); }
+    }
+
+    private void searchEvent() {
+        String college = ((JTextField) collegeSearchBox.getEditor().getEditorComponent()).getText().trim();
+        String event = ((JTextField) eventSearchBox.getEditor().getEditorComponent()).getText().trim();
+
+        if(college.isEmpty() || event.isEmpty()){
+            JOptionPane.showMessageDialog(this,"Please enter both fields");
+            return;
+        }
+
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM events WHERE college_name=? AND event_name=?")) {
+            ps.setString(1,college);
+            ps.setString(2,event);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                showEventDetails(rs.getString("event_name"), rs.getString("college_name"),
+                        rs.getString("venue"), rs.getDate("event_date").toString());
+            } else JOptionPane.showMessageDialog(this,"No such events found");
+        } catch(Exception e){ e.printStackTrace(); }
+    }
+
+    private void showEventDetails(String event, String college, String venue, String date){
+        JFrame frame = new JFrame(event + " - Details");
+        frame.setSize(500,400);
+        frame.setResizable(false);
+        frame.setLocationRelativeTo(this);
 
         JPanel panel = new JPanel();
+        panel.setBackground(new Color(25,25,30));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panel.setBackground(new Color(20, 20, 20));
+        panel.setBorder(new EmptyBorder(20,20,20,20));
 
-        panel.add(detailsArea);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
-        panel.add(registerButton);
-        panel.add(Box.createRigidArea(new Dimension(0, 30)));
-        panel.add(backButton);
+        JTextArea details = new JTextArea(
+                "Event: "+event+"\nCollege: "+college+"\nVenue: "+venue+"\nDate: "+date
+        );
+        details.setEditable(false);
+        details.setFont(new Font("Segoe UI",Font.PLAIN,18));
+        details.setForeground(Color.CYAN);
+        details.setBackground(new Color(25,25,30));
+        details.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.CYAN),"Event Details"));
 
-        eventFrame.add(panel);
-        eventFrame.setVisible(true);
+        JButton registerBtn = createStyledButton("Register", new Color(0,200,150));
+        registerBtn.addActionListener(e -> {
+            try{ Desktop.getDesktop().browse(new URI("https://www.google.com")); }
+            catch(Exception ex){ JOptionPane.showMessageDialog(frame,"Failed to open link"); }
+        });
+
+        JButton backBtn = createStyledButton("Back", new Color(255,90,90));
+        backBtn.addActionListener(e -> frame.dispose());
+
+        panel.add(details);
+        panel.add(Box.createRigidArea(new Dimension(0,20)));
+        panel.add(registerBtn);
+        panel.add(Box.createRigidArea(new Dimension(0,20)));
+        panel.add(backBtn);
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
-    private JPanel createClearableField(JTextField textField) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(30, 30, 30));
-        textField.setFont(new Font("Courier New", Font.PLAIN, 16));
-        textField.setBackground(Color.BLACK);
-        textField.setForeground(Color.GREEN);
-        textField.setCaretColor(Color.GREEN);
-        panel.add(textField, BorderLayout.CENTER);
-
-        JButton clearButton = new JButton("×");
-        clearButton.setMargin(new Insets(1, 10, 1, 10));
-        clearButton.setFocusable(false);
-        clearButton.setFont(new Font("Courier New", Font.BOLD, 16));
-        clearButton.setForeground(Color.RED);
-        clearButton.setBackground(Color.BLACK);
-        clearButton.setBorder(BorderFactory.createLineBorder(Color.RED, 1));
-        clearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        clearButton.setToolTipText("Clear");
-        clearButton.addActionListener(e -> textField.setText(""));
-
-        panel.add(clearButton, BorderLayout.EAST);
-        return panel;
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args){
         SwingUtilities.invokeLater(() -> {
             ProjK frame = new ProjK();
             frame.setVisible(true);
         });
     }
 }
-
