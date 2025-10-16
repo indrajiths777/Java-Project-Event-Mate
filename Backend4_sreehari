@@ -1,148 +1,106 @@
-package eth6package.projk;
+package projk;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class OpenPg {
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(OpenPg::createAndShowGui);
+public class UserEventDAO {
+
+    // --------- USER OPERATIONS ---------
+
+    public static boolean validateUser(String username, String password) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT * FROM users WHERE username=? AND password=?")) {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    private static void createAndShowGui() {
-        JFrame frame = new JFrame("Retro Event Manager");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setBackground(new Color(20, 20, 20));
-        frame.setLayout(new BorderLayout(10, 10));
-        frame.setPreferredSize(new Dimension(600, 420));
-
-        // Top image (if present)
-        URL imgURL = OpenPg.class.getResource("/icon2/icon2.png");
-        if (imgURL != null) {
-            ImageIcon originalIcon = new ImageIcon(imgURL);
-            Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-            JLabel imgLabel = new JLabel(new ImageIcon(scaledImage));
-            imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            imgLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-            frame.add(imgLabel, BorderLayout.NORTH);
+    public static boolean createUser(String username, String password) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO users(username,password) VALUES(?,?)")) {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ps.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
+    }
 
-        // Form panel
-        JPanel form = new JPanel();
-        form.setBackground(new Color(20, 20, 20));
-        form.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 6, 6, 6);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+    // --------- EVENT OPERATIONS ---------
 
-        JLabel titleLabel = new JLabel("Title:");
-        titleLabel.setForeground(Color.WHITE);
-        JTextField titleField = new JTextField(30);
+    public static boolean addEvent(String name, String venue, String date, String college) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO events(event_name,venue,event_date,college_name) VALUES(?,?,?,?)")) {
+            ps.setString(1, name);
+            ps.setString(2, venue);
+            ps.setString(3, date);
+            ps.setString(4, college);
+            ps.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD):");
-        dateLabel.setForeground(Color.WHITE);
-        JTextField dateField = new JTextField(10);
+    public static List<String> getAllEvents() {
+        List<String> events = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT id,event_name,venue,event_date,college_name FROM events");
+             ResultSet rs = ps.executeQuery()) {
 
-        JLabel locLabel = new JLabel("Location:");
-        locLabel.setForeground(Color.WHITE);
-        JTextField locField = new JTextField(20);
-
-        JLabel descLabel = new JLabel("Description:");
-        descLabel.setForeground(Color.WHITE);
-        JTextArea descArea = new JTextArea(4, 30);
-        descArea.setLineWrap(true);
-        descArea.setWrapStyleWord(true);
-
-        gbc.gridx = 0; gbc.gridy = 0; form.add(titleLabel, gbc);
-        gbc.gridx = 1; gbc.gridy = 0; form.add(titleField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1; form.add(dateLabel, gbc);
-        gbc.gridx = 1; gbc.gridy = 1; form.add(dateField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2; form.add(locLabel, gbc);
-        gbc.gridx = 1; gbc.gridy = 2; form.add(locField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3; form.add(descLabel, gbc);
-        gbc.gridx = 1; gbc.gridy = 3; form.add(new JScrollPane(descArea), gbc);
-
-        // Buttons
-        JPanel btnPanel = new JPanel();
-        btnPanel.setBackground(new Color(20, 20, 20));
-        JButton saveBtn = new JButton("Save Event");
-        JButton listBtn = new JButton("Load Events");
-        btnPanel.add(saveBtn);
-        btnPanel.add(listBtn);
-
-        // Status label
-        JLabel status = new JLabel(" ");
-        status.setForeground(Color.WHITE);
-
-        frame.add(form, BorderLayout.CENTER);
-        frame.add(btnPanel, BorderLayout.SOUTH);
-        frame.add(status, BorderLayout.PAGE_END);
-
-        // Instantiate DAO (uses DBConnection.getDataSource())
-        EventDAO eventDAO = new EventDAO(DBConnection.getDataSource());
-
-        // Action: Save
-        saveBtn.addActionListener((ActionEvent e) -> {
-            String title = titleField.getText().trim();
-            String dateText = dateField.getText().trim();
-            String loc = locField.getText().trim();
-            String desc = descArea.getText().trim();
-
-            if (title.isEmpty() || dateText.isEmpty()) {
-                status.setText("Title and Date mandatory.");
-                return;
+            while (rs.next()) {
+                String line = rs.getInt("id") + " | " + rs.getString("event_name") + " | " +
+                        rs.getString("venue") + " | " + rs.getString("event_date") + " | " +
+                        rs.getString("college_name");
+                events.add(line);
             }
 
-            LocalDate date;
-            try {
-                date = LocalDate.parse(dateText);
-            } catch (DateTimeParseException ex) {
-                status.setText("Invalid date format. Use YYYY-MM-DD.");
-                return;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return events;
+    }
 
-            Event ev = new Event(title, date, loc, desc);
-            try {
-                Event created = eventDAO.create(ev);
-                status.setText("Saved event id: " + created.getId());
-                // clear fields
-                titleField.setText("");
-                dateField.setText("");
-                locField.setText("");
-                descArea.setText("");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                status.setText("Error saving: " + ex.getMessage());
-            }
-        });
+    public static boolean deleteEvent(int id) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM events WHERE id=?")) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-        // Action: List events in a dialog
-        listBtn.addActionListener((ActionEvent e) -> {
-            try {
-                java.util.List<Event> list = eventDAO.listAll();
-                StringBuilder sb = new StringBuilder();
-                for (Event it : list) {
-                    sb.append(String.format("id=%d | %s | %s | %s%n", it.getId(), it.getTitle(),
-                            it.getEventDate().toString(), it.getLocation()));
-                }
-                if (sb.length() == 0) sb.append("No events found.");
-                JTextArea ta = new JTextArea(sb.toString(), 20, 60);
-                ta.setEditable(false);
-                JOptionPane.showMessageDialog(frame, new JScrollPane(ta), "Events", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "Error loading events: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+    public static boolean updateEvent(int id, String name, String venue, String date, String college) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "UPDATE events SET event_name=?,venue=?,event_date=?,college_name=? WHERE id=?")) {
+            ps.setString(1, name);
+            ps.setString(2, venue);
+            ps.setString(3, date);
+            ps.setString(4, college);
+            ps.setInt(5, id);
+            ps.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
+
