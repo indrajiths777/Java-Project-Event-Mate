@@ -8,3 +8,4 @@
 - 🖥️ Frontend 2 : Indrajith S
 + ⚙️ Backend    : Sreehari S
 ! 🎨 Design     : Harigovind B
+- 🐛 Bug Tester : Maheswaran V
